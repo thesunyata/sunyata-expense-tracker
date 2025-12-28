@@ -6,7 +6,7 @@ import ExpenseChart from './components/ExpenseChart';
 import TransactionList from './components/TransactionList';
 import AddTransactionModal from './components/AddTransactionModal';
 import { FaPlus } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from './supabaseClient';
 import Auth from './components/Auth';
 import AnalyticsChart from './components/AnalyticsChart';
