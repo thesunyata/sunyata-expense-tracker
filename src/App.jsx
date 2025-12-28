@@ -6,6 +6,8 @@ import TransactionList from './components/TransactionList';
 import AddTransactionModal from './components/AddTransactionModal';
 import { FaPlus } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { supabase } from './supabaseClient';
+import Auth from './components/Auth';
 
 const initialData = [
   { id: 1, text: 'Groceries', amount: -60, category: 'Food', date: '2023-10-25' },
@@ -21,6 +23,21 @@ function App() {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
@@ -65,9 +82,13 @@ function App() {
     triggerHaptic(20);
   };
 
+  if (!session) {
+    return <Auth />;
+  }
+
   return (
     <div style={{ paddingBottom: '6rem' }}>
-      <Header />
+      <Header user={session?.user} />
 
       <div className="dashboard-grid">
         {/* Left Column (Desktop) */}

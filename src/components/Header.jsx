@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Header = () => {
+const Header = ({ user }) => {
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -29,7 +29,11 @@ const Header = () => {
         overflow: 'hidden',
         border: '1px solid var(--glass-border)'
       }}>
-        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" style={{ width: '100%', height: '100%' }} />
+        <img
+          src={user?.user_metadata?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+          alt="User"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
       </div>
     </motion.header>
   );
