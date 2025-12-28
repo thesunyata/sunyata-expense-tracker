@@ -67,7 +67,12 @@ const TransactionList = ({ transactions, onDelete }) => {
                             </div>
                             <div>
                                 <p style={{ fontWeight: 500 }}>{tx.text}</p>
-                                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{tx.date}</p>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    {(() => {
+                                        const d = new Date(tx.date);
+                                        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                                    })()}
+                                </p>
                             </div>
                         </div>
 
