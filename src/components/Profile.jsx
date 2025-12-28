@@ -1,25 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaMoon, FaSun, FaArrowLeft, FaSignOutAlt } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FaUser, FaMoon, FaSun, FaArrowLeft, FaSignOutAlt, FaEdit, FaCheck, FaTimes } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
 
-const Profile = ({ user, onClose }) => {
-    const [profile, setProfile] = useState({
-        username: user?.user_metadata?.full_name || '',
-        avatar_url: user?.user_metadata?.avatar_url || '',
-    });
-    const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark
+const Profile = ({ user, onClose, onUpdateProfile, isDarkMode, toggleTheme }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState(user?.user_metadata?.full_name || '');
+    const [editAvatar, setEditAvatar] = useState(user?.user_metadata?.avatar_url || '');
 
-    // Sync dark mode state with usage
-    useEffect(() => {
-        // Check if root has light-mode class or similar if we implemented toggle logic
-    }, []);
+    // Fallback for avatar display
+    const currentAvatar = user?.user_metadata?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
 
     const handleSignOut = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) console.error('Error logging out:', error.message);
-        window.location.reload(); // Force reload to clear state
+        window.location.reload();
+    };
+
+    const handleSaveProfile = async () => {
+        if (!editName.trim()) return;
+        await onUpdateProfile({
+            full_name: editName,
+            avatar_url: editAvatar
+        });
+        setIsEditing(false);
     };
 
     return (
@@ -34,7 +38,7 @@ const Profile = ({ user, onClose }) => {
                 right: 0,
                 bottom: 0,
                 width: '100%',
-                maxWidth: '400px', // Slide in panel size
+                maxWidth: '400px',
                 background: 'var(--surface-color)',
                 zIndex: 200,
                 padding: '2rem',
@@ -43,21 +47,33 @@ const Profile = ({ user, onClose }) => {
                 flexDirection: 'column'
             }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '3rem' }}>
-                <button
-                    onClick={onClose}
-                    style={{
-                        background: 'transparent',
-                        color: 'var(--text-primary)',
-                        fontSize: '1.2rem',
-                        marginRight: '1rem',
-                        padding: '8px',
-                        borderRadius: '50%'
-                    }}
-                >
-                    <FaArrowLeft />
-                </button>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Profile</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'transparent',
+                            color: 'var(--text-primary)',
+                            fontSize: '1.2rem',
+                            marginRight: '1rem',
+                            padding: '8px',
+                            borderRadius: '50%'
+                        }}
+                    >
+                        <FaArrowLeft />
+                    </button>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Profile</h2>
+                </div>
+                {!isEditing ? (
+                    <button onClick={() => setIsEditing(true)} style={{ color: 'var(--primary-color)', fontSize: '1.2rem' }}>
+                        <FaEdit />
+                    </button>
+                ) : (
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={handleSaveProfile} style={{ color: 'var(--secondary-color)', fontSize: '1.2rem' }}><FaCheck /></button>
+                        <button onClick={() => setIsEditing(false)} style={{ color: 'var(--accent-color)', fontSize: '1.2rem' }}><FaTimes /></button>
+                    </div>
+                )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}>
@@ -68,20 +84,59 @@ const Profile = ({ user, onClose }) => {
                     overflow: 'hidden',
                     marginBottom: '1.5rem',
                     border: '3px solid var(--primary-color)',
-                    boxShadow: '0 10px 20px rgba(0,0,0,0.3)'
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.3)',
+                    position: 'relative'
                 }}>
                     <img
-                        src={profile.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+                        src={isEditing ? (editAvatar || currentAvatar) : currentAvatar}
                         alt="Profile"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                 </div>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>{profile.username}</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>{user?.email}</p>
+
+                {isEditing ? (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder="Display Name"
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--glass-border)',
+                                background: 'var(--surface-color-light)',
+                                color: 'var(--text-primary)'
+                            }}
+                        />
+                        <input
+                            type="text"
+                            value={editAvatar}
+                            onChange={(e) => setEditAvatar(e.target.value)}
+                            placeholder="Avatar URL (Optional)"
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--glass-border)',
+                                background: 'var(--surface-color-light)',
+                                color: 'var(--text-primary)',
+                                fontSize: '0.8rem'
+                            }}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', textAlign: 'center' }}>{user?.user_metadata?.full_name || 'User'}</h3>
+                        <p style={{ color: 'var(--text-secondary)' }}>{user?.email}</p>
+                    </>
+                )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <button
+                    onClick={toggleTheme}
                     style={{
                         padding: '1rem',
                         background: 'var(--surface-color-light)',
@@ -89,7 +144,10 @@ const Profile = ({ user, onClose }) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        color: 'var(--text-primary)'
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        border: 'none',
+                        width: '100%'
                     }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -101,7 +159,7 @@ const Profile = ({ user, onClose }) => {
                     <div style={{
                         width: '50px',
                         height: '26px',
-                        background: isDarkMode ? 'var(--primary-color)' : '#555',
+                        background: isDarkMode ? 'var(--primary-color)' : '#999',
                         borderRadius: '13px',
                         position: 'relative',
                         transition: 'background 0.3s'
@@ -131,7 +189,10 @@ const Profile = ({ user, onClose }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.5rem',
-                        fontWeight: 600
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        border: 'none',
+                        width: '100%'
                     }}
                 >
                     <FaSignOutAlt />

@@ -19,7 +19,7 @@ const initialData = [
   { id: 4, text: 'Games', amount: -70, category: 'Entertainment', date: '2023-10-22' },
 ];
 
-const Dashboard = ({ transactions, onAdd, onDelete, user }) => {
+const Dashboard = ({ transactions, onAdd, onDelete, user, onUpdateProfile, isDarkMode, toggleTheme }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -79,7 +79,17 @@ const Dashboard = ({ transactions, onAdd, onDelete, user }) => {
       />
 
       <AnimatePresence>
-        {isProfileOpen && <Profile user={user} onClose={() => setIsProfileOpen(false)} />}
+        <AnimatePresence>
+          {isProfileOpen && (
+            <Profile
+              user={user}
+              onClose={() => setIsProfileOpen(false)}
+              onUpdateProfile={onUpdateProfile}
+              isDarkMode={isDarkMode}
+              toggleTheme={toggleTheme}
+            />
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </div>
   );
@@ -88,6 +98,33 @@ const Dashboard = ({ transactions, onAdd, onDelete, user }) => {
 const App = () => {
   const [transactions, setTransactions] = useState([]);
   const [session, setSession] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Apply theme
+  useEffect(() => {
+    document.body.className = isDarkMode ? 'dark-theme' : 'light-theme';
+    // Since we only have dark theme variables defined right now, we can just toggle a class
+    // actually, let's keep it simple: if not dark, we can revert variables. 
+    // For now, we'll just toggle the state to be passed.
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  const updateProfile = async (updates) => {
+    if (!session) return;
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: updates
+    });
+
+    if (error) {
+      alert('Error updating profile: ' + error.message);
+    } else {
+      // Refresh session to get new metadata
+      const { data: { session: newSession } } = await supabase.auth.refreshSession();
+      setSession(newSession);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -170,6 +207,9 @@ const App = () => {
             onAdd={addTransaction}
             onDelete={deleteTransaction}
             user={session.user}
+            onUpdateProfile={updateProfile}
+            isDarkMode={isDarkMode}
+            toggleTheme={toggleTheme}
           />
         } />
       </Routes>

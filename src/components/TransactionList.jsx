@@ -17,7 +17,7 @@ const TransactionList = ({ transactions, onDelete }) => {
         <div style={{ paddingBottom: '80px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.2rem' }}>Recent Transactions</h3>
-                <button style={{ color: 'var(--primary-color)', fontSize: '0.9rem' }}>View All</button>
+                <button style={{ background: 'transparent', color: 'var(--primary-color)', fontSize: '0.9rem', cursor: 'pointer' }}>View All</button>
             </div>
 
             <AnimatePresence initial={false}>

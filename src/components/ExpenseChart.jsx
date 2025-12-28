@@ -23,6 +23,23 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const ExpenseChart = ({ data }) => {
+
+    const gradientOffset = () => {
+        const dataMax = Math.max(...data.map((i) => i.value));
+        const dataMin = Math.min(...data.map((i) => i.value));
+
+        if (dataMax <= 0) {
+            return 0;
+        }
+        if (dataMin >= 0) {
+            return 1;
+        }
+
+        return dataMax / (dataMax - dataMin);
+    };
+
+    const off = gradientOffset();
+
     return (
         <motion.div
             className="glass-panel"
@@ -35,13 +52,15 @@ const ExpenseChart = ({ data }) => {
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data} margin={{ left: -20, right: 10 }}>
                     <defs>
-                        <linearGradient id="colorGreen" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--secondary-color)" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="var(--secondary-color)" stopOpacity={0} />
+                        <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset={off} stopColor="var(--secondary-color)" stopOpacity={1} />
+                            <stop offset={off} stopColor="var(--accent-color)" stopOpacity={1} />
                         </linearGradient>
-                        <linearGradient id="colorRed" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--accent-color)" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="var(--accent-color)" stopOpacity={0} />
+                        <linearGradient id="splitColorFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset={0} stopColor="var(--secondary-color)" stopOpacity={0.3} />
+                            <stop offset={off} stopColor="var(--secondary-color)" stopOpacity={0} />
+                            <stop offset={off} stopColor="var(--accent-color)" stopOpacity={0} />
+                            <stop offset={1} stopColor="var(--accent-color)" stopOpacity={0.3} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-color-light)" />
@@ -54,18 +73,18 @@ const ExpenseChart = ({ data }) => {
                         tickFormatter={(str) => {
                             if (!str) return '';
                             const d = new Date(str);
-                            return isNaN(d) ? str : `${d.getDate()}/${d.getMonth() + 1}`;
+                            if (isNaN(d)) return str;
+                            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                            return `${days[d.getDay()]} ${d.getDate()}`;
                         }}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--surface-color-light)', strokeWidth: 2 }} />
                     <Area
                         type="monotone"
                         dataKey="value"
-                        data={data}
-                        stroke={data[data.length - 1]?.value >= 0 ? "var(--secondary-color)" : "var(--accent-color)"}
+                        stroke="url(#splitColor)"
                         strokeWidth={3}
-                        fillOpacity={1}
-                        fill={data[data.length - 1]?.value >= 0 ? "url(#colorGreen)" : "url(#colorRed)"}
+                        fill="url(#splitColorFill)"
                     />
                 </AreaChart>
             </ResponsiveContainer>
