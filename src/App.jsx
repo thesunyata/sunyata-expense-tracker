@@ -17,10 +17,7 @@ const initialData = [
 ];
 
 function App() {
-  const [transactions, setTransactions] = useState(() => {
-    const saved = localStorage.getItem('transactions');
-    return saved ? JSON.parse(saved) : initialData;
-  });
+  const [transactions, setTransactions] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [session, setSession] = useState(null);
@@ -40,8 +37,20 @@ function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
+    if (session) {
+      fetchTransactions();
+    }
+  }, [session]);
+
+  const fetchTransactions = async () => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) console.error('Error fetching:', error);
+    else setTransactions(data);
+  };
 
   const amounts = transactions.map(t => t.amount);
   const totalBalance = amounts.length > 0 ? amounts.reduce((acc, item) => acc + item, 0) : 0;
@@ -68,18 +77,38 @@ function App() {
     }
   };
 
-  const addTransaction = (transaction) => {
-    const newTx = {
-      id: Math.floor(Math.random() * 1000000),
-      ...transaction
-    };
-    setTransactions([newTx, ...transactions]);
-    triggerHaptic([10, 30, 10]); // Success pattern
+  const addTransaction = async (transaction) => {
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert([{
+        ...transaction,
+        user_id: session.user.id
+      }])
+      .select();
+
+    if (error) {
+      console.error('Error adding:', error);
+      alert('Error adding transaction. Please check your network or try again.');
+    } else {
+      setTransactions([data[0], ...transactions]);
+      triggerHaptic([10, 30, 10]); // Success pattern
+    }
   };
 
-  const deleteTransaction = (id) => {
-    setTransactions(transactions.filter(t => t.id !== id));
-    triggerHaptic(20);
+  const deleteTransaction = async (id) => {
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting:', error);
+    } else {
+      setTransactions(transactions.filter(t => t.id !== id));
+      triggerHaptic(20);
+    }
   };
 
   if (!session) {
