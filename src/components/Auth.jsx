@@ -28,7 +28,7 @@ const Auth = () => {
             alignItems: 'center',
             justifyContent: 'center',
             background: 'var(--bg-color)',
-            position: 'absolute',
+            position: 'fixed',
             top: 0,
             left: 0,
             zIndex: 1000
