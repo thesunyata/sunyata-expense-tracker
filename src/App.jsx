@@ -28,13 +28,14 @@ const Dashboard = ({ transactions, onAdd, onDelete, user }) => {
   const income = amounts.filter(item => item > 0).reduce((acc, item) => acc + item, 0);
   const expense = amounts.filter(item => item < 0).reduce((acc, item) => acc + item, 0);
 
-  // Prepare chart data
+  // Prepare chart data (Cumulative Net Balance or Daily Net)
+  // Let's do Daily Net since user asked for red/green differentiation
   const chartData = transactions.reduce((acc, current) => {
     const found = acc.find(item => item.name === current.date);
     if (found) {
-      found.value += Math.abs(current.amount);
+      found.value += current.amount;
     } else {
-      acc.push({ name: current.date, value: Math.abs(current.amount) });
+      acc.push({ name: current.date, value: current.amount });
     }
     return acc;
   }, []).sort((a, b) => new Date(a.name) - new Date(b.name)).slice(-7);

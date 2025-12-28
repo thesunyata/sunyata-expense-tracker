@@ -74,7 +74,7 @@ const TransactionList = ({ transactions, onDelete }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <p style={{
                                 fontWeight: 600,
-                                color: tx.amount > 0 ? 'var(--secondary-color)' : 'var(--text-primary)'
+                                color: tx.amount > 0 ? 'var(--secondary-color)' : 'var(--accent-color)'
                             }}>
                                 {tx.amount > 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
                             </p>

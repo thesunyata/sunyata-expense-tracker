@@ -13,7 +13,9 @@ const CustomTooltip = ({ active, payload, label }) => {
                 boxShadow: 'var(--shadow-lg)'
             }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{label}</p>
-                <p style={{ color: 'var(--primary-color)', fontWeight: 600 }}>₹{payload[0].value}</p>
+                <p style={{ color: payload[0].value >= 0 ? 'var(--secondary-color)' : 'var(--accent-color)', fontWeight: 600 }}>
+                    {payload[0].value >= 0 ? '+' : ''}₹{Math.abs(payload[0].value).toFixed(2)}
+                </p>
             </div>
         );
     }
@@ -31,11 +33,15 @@ const ExpenseChart = ({ data }) => {
         >
             <h3 style={{ paddingLeft: '1.5rem', marginBottom: '1rem', fontSize: '1.2rem' }}>Activity</h3>
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
+                <AreaChart data={data} margin={{ left: -20, right: 10 }}>
                     <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--primary-color)" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="var(--primary-color)" stopOpacity={0} />
+                        <linearGradient id="colorGreen" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--secondary-color)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--secondary-color)" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorRed" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--accent-color)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--accent-color)" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-color-light)" />
@@ -43,17 +49,23 @@ const ExpenseChart = ({ data }) => {
                         dataKey="name"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                        tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
                         dy={10}
+                        tickFormatter={(str) => {
+                            if (!str) return '';
+                            const d = new Date(str);
+                            return isNaN(d) ? str : `${d.getDate()}/${d.getMonth() + 1}`;
+                        }}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--surface-color-light)', strokeWidth: 2 }} />
                     <Area
                         type="monotone"
                         dataKey="value"
-                        stroke="var(--primary-color)"
+                        data={data}
+                        stroke={data[data.length - 1]?.value >= 0 ? "var(--secondary-color)" : "var(--accent-color)"}
                         strokeWidth={3}
                         fillOpacity={1}
-                        fill="url(#colorValue)"
+                        fill={data[data.length - 1]?.value >= 0 ? "url(#colorGreen)" : "url(#colorRed)"}
                     />
                 </AreaChart>
             </ResponsiveContainer>

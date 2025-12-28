@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { motion } from 'framer-motion';
 
-const COLORS = ['#6d28d9', '#f43f5e', '#10b981', '#f59e0b', '#3b82f6', '#ec4899'];
+const COLORS = ['#f43f5e', '#ef4444', '#dc2626', '#fb923c', '#d97706', '#9f1239'];
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
