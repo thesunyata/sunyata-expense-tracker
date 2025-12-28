@@ -1,0 +1,108 @@
+import React, { useState, useEffect } from 'react';
+import Header from './components/Header';
+import BalanceCard from './components/BalanceCard';
+import ExpenseChart from './components/ExpenseChart';
+import TransactionList from './components/TransactionList';
+import AddTransactionModal from './components/AddTransactionModal';
+import { FaPlus } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+
+const initialData = [
+  { id: 1, text: 'Groceries', amount: -60, category: 'Food', date: '2023-10-25' },
+  { id: 2, text: 'Salary', amount: 2500, category: 'Other', date: '2023-10-24' },
+  { id: 3, text: 'Gas', amount: -45, category: 'Transport', date: '2023-10-23' },
+  { id: 4, text: 'Games', amount: -70, category: 'Entertainment', date: '2023-10-22' },
+];
+
+function App() {
+  const [transactions, setTransactions] = useState(() => {
+    const saved = localStorage.getItem('transactions');
+    return saved ? JSON.parse(saved) : initialData;
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  const amounts = transactions.map(t => t.amount);
+  const totalBalance = amounts.length > 0 ? amounts.reduce((acc, item) => acc + item, 0) : 0;
+  const income = amounts.filter(item => item > 0).reduce((acc, item) => acc + item, 0);
+  const expense = amounts.filter(item => item < 0).reduce((acc, item) => acc + item, 0);
+
+  // Prepare chart data (simple daily grouping)
+  const chartData = transactions.reduce((acc, current) => {
+    const found = acc.find(item => item.name === current.date);
+    if (found) {
+      found.value += Math.abs(current.amount);
+    } else {
+      acc.push({ name: current.date, value: Math.abs(current.amount) });
+    }
+    return acc;
+  }, []).sort((a, b) => new Date(a.name) - new Date(b.name)).slice(-7); // Last 7 days/entries
+
+  // Fallback if not enough data
+  const finalChartData = chartData.length > 0 ? chartData : [{ name: 'Today', value: 0 }];
+
+  const triggerHaptic = (pattern = 10) => {
+    if (navigator.vibrate) {
+      navigator.vibrate(pattern);
+    }
+  };
+
+  const addTransaction = (transaction) => {
+    const newTx = {
+      id: Math.floor(Math.random() * 1000000),
+      ...transaction
+    };
+    setTransactions([newTx, ...transactions]);
+    triggerHaptic([10, 30, 10]); // Success pattern
+  };
+
+  const deleteTransaction = (id) => {
+    setTransactions(transactions.filter(t => t.id !== id));
+    triggerHaptic(20);
+  };
+
+  return (
+    <div style={{ paddingBottom: '6rem' }}>
+      <Header />
+
+      <div className="dashboard-grid">
+        {/* Left Column (Desktop) */}
+        <div>
+          <BalanceCard totalBalance={totalBalance} income={income} expense={expense} />
+          <ExpenseChart data={finalChartData} />
+        </div>
+
+        {/* Right Column (Desktop) */}
+        <div className="desktop-sidebar">
+          <TransactionList transactions={transactions} onDelete={deleteTransaction} />
+        </div>
+      </div>
+
+      {/* Floating Action Button */}
+      <motion.button
+        className="fab-button"
+        whileTap={{ scale: 0.9 }}
+        onClick={() => {
+          setIsModalOpen(true);
+          triggerHaptic(10);
+        }}
+      >
+        <FaPlus />
+      </motion.button>
+
+      {/* Mobile-centric centered FAB often looks better at bottom center or bottom right. Keep center for now. */}
+
+      <AddTransactionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={addTransaction}
+      />
+    </div>
+  );
+}
+
+export default App;
