@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 const categories = ['Food', 'Housing', 'Transport', 'Entertainment', 'Shopping', 'Other'];
 
@@ -8,24 +10,30 @@ const AddTransactionModal = ({ isOpen, onClose, onAdd }) => {
     const [text, setText] = useState('');
     const [amount, setAmount] = useState('');
     const [category, setCategory] = useState('Food');
-    const [type, setType] = useState('expense'); // 'income' or 'expense'
+    const [type, setType] = useState('expense');
+    const [date, setDate] = useState(new Date());
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!text || !amount) return;
 
-        const finalAmount = type === 'expense' ? -Math.abs(parseFloat(amount)) : Math.abs(parseFloat(amount));
+        // Logic: if type is expense, ensure amount is negative. If income, positive.
+        const numericAmount = Math.abs(parseFloat(amount));
+        const finalAmount = type === 'expense' ? -numericAmount : numericAmount;
 
+        // Format date as YYYY-MM-DD for database consistency or ISO
         onAdd({
             text,
             amount: finalAmount,
             category,
-            date: new Date().toLocaleDateString()
+            date: date.toISOString().split('T')[0] // 'YYYY-MM-DD'
         });
 
+        // Reset form
         setText('');
         setAmount('');
         setCategory('Food');
+        setDate(new Date());
         onClose();
     };
 
@@ -63,6 +71,8 @@ const AddTransactionModal = ({ isOpen, onClose, onAdd }) => {
                             zIndex: 101,
                             maxWidth: '600px',
                             margin: '0 auto',
+                            maxHeight: '90vh',
+                            overflowY: 'auto'
                         }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -108,6 +118,29 @@ const AddTransactionModal = ({ isOpen, onClose, onAdd }) => {
                                 </div>
                             </div>
 
+                            {/* Amount - moved up for importance */}
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Amount</label>
+                                <div style={{ position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: '1rem', top: '1rem', color: type === 'expense' ? 'var(--accent-color)' : 'var(--secondary-color)', fontSize: '1.2rem', fontWeight: 600 }}>₹</span>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        style={{
+                                            width: '100%',
+                                            padding: '1rem 1rem 1rem 2.5rem',
+                                            background: 'var(--surface-color-light)',
+                                            borderRadius: '12px',
+                                            color: type === 'expense' ? 'var(--accent-color)' : 'var(--secondary-color)',
+                                            fontSize: '1.5rem',
+                                            fontWeight: 700
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Description</label>
                                 <input
@@ -127,21 +160,24 @@ const AddTransactionModal = ({ isOpen, onClose, onAdd }) => {
                             </div>
 
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Amount</label>
-                                <input
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    placeholder="0.00"
-                                    style={{
-                                        width: '100%',
-                                        padding: '1rem',
-                                        background: 'var(--surface-color-light)',
-                                        borderRadius: '12px',
-                                        color: 'white',
-                                        fontSize: '1rem'
-                                    }}
-                                />
+                                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Date</label>
+                                <div style={{
+                                    width: '100%',
+                                    padding: '0.8rem',
+                                    background: 'var(--surface-color-light)',
+                                    borderRadius: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem'
+                                }}>
+                                    <FaCalendarAlt color="var(--text-secondary)" />
+                                    <DatePicker
+                                        selected={date}
+                                        onChange={(date) => setDate(date)}
+                                        dateFormat="MMMM d, yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
                             </div>
 
                             <div style={{ marginBottom: '2rem' }}>

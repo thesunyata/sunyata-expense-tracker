@@ -152,3 +152,45 @@ button {
     transform: translateX(0);
   }
 }
+
+/* DatePicker Override */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.custom-datepicker {
+  background: transparent;
+  color: white;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.react-datepicker {
+  background-color: var(--surface-color) !important;
+  border-color: var(--glass-border) !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+.react-datepicker__header {
+  background-color: var(--surface-color-light) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.react-datepicker__day {
+  color: var(--text-primary) !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--surface-color-light) !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: var(--primary-color) !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: var(--text-primary) !important;
+}
