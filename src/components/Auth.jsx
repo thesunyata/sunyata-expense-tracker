@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FcGoogle } from 'react-icons/fc';
-import { supabase } from '../supabaseClient';
+import { supabase, isSupabaseConfigured } from '../supabaseClient';
 
 const Auth = () => {
     const [loading, setLoading] = useState(false);
@@ -87,6 +87,11 @@ const Auth = () => {
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1rem' }}>
                         Find clarity in your finances.
                     </p>
+                    {!isSupabaseConfigured() && (
+                        <div style={{ background: '#f87171', color: '#450a0a', padding: '0.5rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.8rem' }}>
+                            ⚠️ Setup Required: Add VITE_SUPABASE_URL and KEY to Vercel Env Vars.
+                        </div>
+                    )}
                 </motion.div>
 
                 <motion.button
